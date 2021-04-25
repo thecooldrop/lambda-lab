@@ -52,5 +52,3 @@ def get_all_tasks():
                     "content-type": "application/json"
                 },
                 "body": json.dumps(tasks)}
-
-class
