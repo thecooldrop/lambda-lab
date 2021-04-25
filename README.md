@@ -106,10 +106,10 @@ parameters you may consult this
 [Stackoverflow explanation of these parameters][SO Event and Context].
 
 In order to have a functioning TODO list we are going to need somewhere to store
-our list of tasks. In previous steps we have already created an S3 bucket and file
-into which we are going to save our task list. In order to be able to read the file
-and write to it, we need to configure our Lambda function to read from the desired
-S3 bucket and file.
+our list of tasks. Previously we have created an S3 bucket and a file
+into which we are going to save our task list. For Lambda function
+to be able to read the file and write to it, we need to configure our Lambda
+function to read from the desired S3 bucket and file.
 
 Environment variables are often used for passing the configuration parameters
 to software deployments, so that is what we are going to use here. These variables
