@@ -144,7 +144,8 @@ In the end your configuration should look something like this:
 
 Now comes the most vital part of a Lambda function, namely the code. Go back to
 the overview of your Lambda function and in the code editor paste in the 
-content of `app.py` file, which you can find in this repository. 
+content of `app.py` file, which you can find in this repository. Do not forget
+to click on the `Deploy` button above the code editor to deploy your code.
 
 Now may be the good time to analyze what our code is actually doing. Try to
 answer following questions for yourself:
@@ -154,7 +155,7 @@ answer following questions for yourself:
 - Where do we write to `tasks.json` ?
 - What is that `boto3` thing we keep using?
 
-Now you should have a fully configured Lambda function, which is ready to be
+You should have a fully configured Lambda function, which is ready to be
 presented to the world. Let's start working on that presentation in the next
 part.
 
@@ -164,7 +165,22 @@ In the console search bar enter `API gateway` and navigate to the first service
 from the list of search results. You should now be seeing the console of
 `API Gateway` service. 
 
-In the console 
+In the console click on `build` button for `HTTP API` to start configuring
+the access to Lambda function and then:
+
+- Click on `Add integration` and choose `Lambda` from the dropdown menu to
+  indicate that API is going to be targeting a Lambda function. Proceed
+  to select your Lambda function, which you have created in previous step.
+- Choose a suitable name for your API and click on `Next`
+- In the next step, click on `Add route` button to add one more route in
+  addition to the default configured route. For the first route choose
+  `Method` to be `GET` and for second route choose method to be `POST`.
+  Field `Resource path` of both routes should be `/tasks` and both should have
+  our previously created Lambda function as entry in `Integration target` field.
+- Proceed to click on `Next` and `Create` buttons to finish configuring the
+  API gateway.
+  
+
 
 
 [SO Event and Context]: https://stackoverflow.com/questions/53936773/what-are-event-and-context-in-function-call-in-aws-lambda#:~:text=When%20Lambda%20runs%20your%20function,input%20to%20a%20regular%20function.
