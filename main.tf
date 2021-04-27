@@ -6,14 +6,14 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket = "frauenhofer-lambda-infra-state-bucket"
-    key = "global/s3/terraform.tfstate"
-    region = "eu-central-1"
-
-    dynamodb_table = "terraform-frauenhofer-locks"
-    encrypt = true
-  }
+//  backend "s3" {
+//    bucket = "frauenhofer-lambda-infra-state-bucket"
+//    key = "global/s3/terraform.tfstate"
+//    region = "eu-central-1"
+//
+//    dynamodb_table = "terraform-frauenhofer-locks"
+//    encrypt = true
+//  }
 }
 
 provider "aws" {
@@ -127,8 +127,33 @@ resource "aws_iam_role_policy_attachment" "task_lambda_role_binding" {
 resource "aws_apigatewayv2_api" "tasks_lambda_api" {
   name = "tasks-lambda-api"
   protocol_type = "HTTP"
-  route_key = "ANY /tasks"
-  target = aws_lambda_function.tasks_lambda.arn
+//  route_key = "ANY /tasks"
+//  target = aws_lambda_function.tasks_lambda.arn
+}
+
+resource "aws_apigatewayv2_integration" "tasks_lambda_integration" {
+  api_id = aws_apigatewayv2_api.tasks_lambda_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri = aws_lambda_function.tasks_lambda.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "get_tasks_route" {
+  api_id = aws_apigatewayv2_api.tasks_lambda_api.id
+  route_key = "GET /tasks"
+  target = "integrations/${aws_apigatewayv2_integration.tasks_lambda_integration.id}"
+}
+
+resource "aws_apigatewayv2_route" "post_tasks_route" {
+  api_id = aws_apigatewayv2_api.tasks_lambda_api.id
+  route_key = "POST /tasks"
+  target = "integrations/${aws_apigatewayv2_integration.tasks_lambda_integration.id}"
+}
+
+resource "aws_apigatewayv2_stage" "default" {
+  api_id = aws_apigatewayv2_api.tasks_lambda_api.id
+  name = "$default"
+  auto_deploy = true
 }
 
 resource "aws_lambda_permission" "api_call_permission" {
