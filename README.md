@@ -18,12 +18,9 @@ infrastructure-as-code approach. So let's get kickin!
 ## Infrastructure of TODO application
 
 The TODO list application will need to store the list of tasks somewhere so
-that we can retrieve it later. This means that we are going to be needing a
-persistence solution for storing and retrieving this data. We are going
-to be using a simple file in an S3 bucket for this purpose.
-
-Secondly we are going to need somewhere to execute our code. This is
-where Lambda functions come into play.
+that we can retrieve it later. Compute resources are going to be necessary
+to exeucte the code. Lastly we will need to configure access to our application
+so that it can be consumed by us or our users.
 
 ### Infrastructure overview
 
@@ -159,6 +156,48 @@ You should have a fully configured Lambda function, which is ready to be
 presented to the world. Let's start working on that presentation in the next
 part.
 
+### Permissions configuration
+
+Important thing to know in AWS is that by default almost none of the services
+which you provision in your account are accessible by other services which 
+you provision. This means that access to resources is tightly controlled,
+which is usually what we want in order to maximize security.
+
+A consequence of this behavior is that per default our Lambda function
+can not access the files in our buckets, because it does not have the
+rights. The access rights can be managed on very fine level, or on
+very coarse level. For example we could say that our Lambda function
+is allowed to execute specific actions on specific file in specific 
+bucket, but for our purposes such controll may be an overkill.
+
+To keep things simple we will allow our Lambda function to do 
+anything it wants with any of S3 resources. We assign permissions to Lambda
+function by assigning rights to the role, which is assumed by the Lambda function
+when it starts executing.
+
+First we find out the role, which gets assumed by Lambda function during the
+execution:
+- Go to your Lambda function
+- Go to `Configuration` tab
+- In the left-hand menu click on `Permissions`
+- Note for yourself the role which gets assumed by Lambda function for execution
+
+![Aws Lambda function permissions overview with emphasis on the role assumed by the function](img/AwsLambdaFunctionPermissionsOverview.png)
+
+In the search bar enter `IAM` and navigate to the first service in the list of 
+services. To configure the rights for Lambda function:
+- Click on `Roles` in the left-hand side menu
+- In the search bar in middle of your screen enter the name of the role assumed
+  by your Lambda function. Click on the role found
+- Click on the role and then click on `Attch policies` button
+- In the search bar search for `AmazonS3FullAccess` and select the policy
+- Click on `Attach policy` button in lower right corner of the screen
+
+You have now allowed any service which assumes this role to do anything it wants
+with any of the objects belonging to the S3 service. This of course includes
+the Lambda function you have previously created.
+
+
 ### Configuring the API gateway
 
 In the console search bar enter `API gateway` and navigate to the first service
@@ -179,8 +218,110 @@ the access to Lambda function and then:
   our previously created Lambda function as entry in `Integration target` field.
 - Proceed to click on `Next` and `Create` buttons to finish configuring the
   API gateway.
-  
+- Copy the URL assigned to this API gateway
+
+![AWS API Gatway overview with API URL emphasized](img/AwsApiGatewayOverviewWithUrlEmphasized.png)
+
+### Test your application 
+
+Now we need to confirm that the thing we have built also works. We are going to be using
+Postman to execute HTTP requests against our service. [Download Postman][Download Postman]
+and import the collection of requests which you can find in this repository in file
+`postman_collection.json`.
+
+You can now choose one of the requests and replace the target URL, so that
+your requests get sent to `<your url>/tasks`.
+
+
+## Recap
+
+In the sections above we have manually configured the infrastructure necessary
+for provisioning a small backend application for persisting and accessing a
+list of tasks. We have:
+
+- Configured the persistence solution
+- Provisioned the compute resources where our application is going to run
+- Configured our Lambda function with environment variables
+- Configured the access rights, so that Lambda can access our configured
+  persistence solution
+- Configured an API to make our application accessible to public
+
+The list of things we have done is pretty long, and giving a detailed
+description of all the resources we have provisioned would be pretty hard.
+Further besides the lack of overview of provisioned resources lot of manual
+work would be necessary to delete all of these resources in order to stop
+incurring further usage costs, once these resources are not necessary.
+
+Configuring infrastructure by clicking around in console is lacking in nature.
+Beside lacking in overview, this method of configuring your resources is 
+error prone, and once you make a change which breaks something you have no
+way of restoring the previous functional state.
+
+## Enter infrastructure-as-code
+
+The problems described above can all be solved by leveraging a methodology
+known as infrastructure-as-code.
+
+According to [Wikipedia definition][IaC definition wikipedia] infrastructure as code (IaC) is:
+
+```text
+Infrastructure as code (IaC) is the process of managing and provisioning computer
+data centers through machine-readable definition files, rather than physical hardware configuration
+or interactive configuration tools.
+```
+
+In reality IaC is even more general than implied by the definition above, and usually includes
+provisioning and description of services and compute resources necessary to deliver and deploy
+software in large-scale heterogeneous computational environments.
+
+IaC can be realized using different tools, but most popular one is Terraform. This tool
+integrates with large number of technologies and cloud-providers to enable declarative
+descriptions of applications, services and infrastructure deployed. 
+
+To finish this lab in glamorous style we are going to dive into Terraform and migrate
+our deployed example once more as code.
+
+## Terraforming manual labor 🚀
+
+### Prerequisites
+
+For this piece of the lab you are going to require following software installed on
+computer:
+
+- [Terraform][Terraform installation]
+- [AWS CLI][AWS CLI installation]
+
+Enable access to your AWS account via CLI:
+
+- Log into AWS console
+- Navigate to `IAM` service via search bar
+- In the left-hand side menu click on `Users`
+- Click on your username in the middle of the screen
+- Click on `Security Credentials` 
+- Scroll down and click on `Create access key`
+- **Click on `Create access key` and save it as `.csv` as you will only be
+  able to access it once**
+- Open the command line terminal (either `Powershell` for `Windows` or `Terminal` for `Linux`)
+- Enter following commands into your terminal:
+
+```powershell
+> aws configure
+AWS Access Key ID [None]: <your access id from CSV file>
+AWS Secret Access Key [None]: <your secret access key from CSV file>
+Default region name [None]: eu-central-1
+Default output format [None]: yaml
+```
+
+### Configure your infrastructure as code
+
+Now comes the magic. In order for magic to work please follow the further
+instruction which you are going to find in the `main.tf` file in this repository.
+
 
 
 
 [SO Event and Context]: https://stackoverflow.com/questions/53936773/what-are-event-and-context-in-function-call-in-aws-lambda#:~:text=When%20Lambda%20runs%20your%20function,input%20to%20a%20regular%20function.
+[Download Postman]: https://www.postman.com/downloads/
+[IaC definition wikipedia]: https://en.wikipedia.org/wiki/Infrastructure_as_code
+[Terraform installation]: https://learn.hashicorp.com/tutorials/terraform/install-cli
+[AWS CLI installation]: https://aws.amazon.com/cli/
