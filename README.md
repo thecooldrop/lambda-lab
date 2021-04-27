@@ -25,9 +25,9 @@ to be using a simple file in an S3 bucket for this purpose.
 Secondly we are going to need somewhere to execute our code. This is
 where Lambda functions come into play.
 
-### Configuring the Lambda function
+### Infrastructure overview
 
-For deployment of our application we are going to be using AWS Lambda
+For deployment of our application we are going to be using AWS Lambda, S3 bucket
 and AWS API Gateway services.
 
 The AWS Lambda service is going to  provide the compute resources on which
@@ -35,7 +35,13 @@ our application is going to be running. This is a so-called serverless runtime,
 which means we only need to specify the code, which we would like to have executed
 and AWS takes care of the rest.
 
-Second service on our hit-list is the AWS API Gateway service. API Gateway service
+For persisting of our task list we are going to be utilizing simple file-based
+storage solution, which is going to be provided to us by S3 service. S3 is
+simple storage service for storing so called objects into so called buckets,
+which are analogous to files and file-systems, but with important differences
+regarding availability, replication and redundancy.
+
+Last service on our hit-list is the AWS API Gateway service. API Gateway service
 is a service for managing APIs to our service, whose functionality is provided
 by Lambda function. We are going to use it to specify how our users may interact
 with the service. Word of caution on terminology here: API is nothing more than
@@ -119,6 +125,46 @@ Click on the `Configuration` button in the overview of your Lambda function and 
 click on `Environment variables` button in the left-hand side menu.
 
 ![Lambda function overview with configuration button emphasized](img/LambdaFunctionOverviewConfigurationEmphasized.png)
+
+Configure two random variables :
+
+- First random variable should be called `BUCKET_NAME` with value equal to the,
+  name of the bucket of the bucket which you have previously created. As the 
+  name of the environment variable suggest, this contains the name of the
+  bucket which is going to be used by Lambda function for persistence.
+- Second random variable should be called `FILEPATH` with value equal to
+  `tasks.json`. This random variable contains the path to file in which
+  we are going to persist are task list. Path to the file is a relative 
+  path, where path is relative to the bucket.
+  
+
+In the end your configuration should look something like this:
+
+![AWS Lambda Functtion environment variable configuration with two environemnt variables configured](img/AwsLambdaFunctionEnvironmentVariablesConfiguration.png)
+
+Now comes the most vital part of a Lambda function, namely the code. Go back to
+the overview of your Lambda function and in the code editor paste in the 
+content of `app.py` file, which you can find in this repository. 
+
+Now may be the good time to analyze what our code is actually doing. Try to
+answer following questions for yourself:
+
+- Where are the enviroment variables getting used in the code?
+- Where do we read out the concent of `tasks.json` ?
+- Where do we write to `tasks.json` ?
+- What is that `boto3` thing we keep using?
+
+Now you should have a fully configured Lambda function, which is ready to be
+presented to the world. Let's start working on that presentation in the next
+part.
+
+### Configuring the API gateway
+
+In the console search bar enter `API gateway` and navigate to the first service
+from the list of search results. You should now be seeing the console of
+`API Gateway` service. 
+
+In the console 
 
 
 [SO Event and Context]: https://stackoverflow.com/questions/53936773/what-are-event-and-context-in-function-call-in-aws-lambda#:~:text=When%20Lambda%20runs%20your%20function,input%20to%20a%20regular%20function.
