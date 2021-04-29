@@ -52,7 +52,7 @@ provider "aws" {
 // terraform apply
 
 //resource "aws_s3_bucket" "tasks_bucket" {
-//  bucket = "frauenhofer-tasks-lambda-bucket"
+//  bucket = "tasks-lambda-bucket-133714c"
 //  versioning {
 //    enabled = true
 //  }
@@ -108,7 +108,7 @@ provider "aws" {
 //
 //
 //resource "aws_iam_policy" "lambda_function_policy" {
-//  name = "frauenhofer_lambda_policy"
+//  name = "lambda_policy"
 //  description = "Policy to allow full access to S3 for Lambda function and to Cloudwatch LogGroup"
 //  policy = jsonencode({
 //    Version = "2012-10-17"
